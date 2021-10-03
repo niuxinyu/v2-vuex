@@ -1,6 +1,7 @@
 export default function (Vue) {
   const version = Number(Vue.version.split('.')[0])
 
+  // 这里 v2 和 v1 实现是不同的
   if (version >= 2) {
     Vue.mixin({ beforeCreate: vuexInit })
   } else {
@@ -20,8 +21,11 @@ export default function (Vue) {
    */
 
   function vuexInit () {
+    // 缓存此时的 $options
     const options = this.$options
     // store injection
+    // 判断是否有 store 对象
+    // 如果有实现自动注入
     if (options.store) {
       this.$store = typeof options.store === 'function'
         ? options.store()

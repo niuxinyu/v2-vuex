@@ -48,6 +48,7 @@ export function deepCopy (obj, cache = []) {
 
 /**
  * forEach for object
+ * 遍历对象
  */
 export function forEachValue (obj, fn) {
   Object.keys(obj).forEach(key => fn(obj[key], key))
@@ -61,6 +62,7 @@ export function isPromise (val) {
   return val && typeof val.then === 'function'
 }
 
+// 如果第一个条件为假，则输出 msg
 export function assert (condition, msg) {
   if (!condition) throw new Error(`[vuex] ${msg}`)
 }

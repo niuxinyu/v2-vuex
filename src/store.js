@@ -20,6 +20,8 @@ export class Store {
       assert(this instanceof Store, `store must be called with the new operator.`)
     }
 
+    // 插件数组
+    // 是否严格模式，默认为 false
     const {
       plugins = [],
       strict = false
@@ -40,6 +42,7 @@ export class Store {
     // bind commit and dispatch to self
     const store = this
     const { dispatch, commit } = this
+    // 覆盖定义 dispatch commit
     this.dispatch = function boundDispatch (type, payload) {
       return dispatch.call(store, type, payload)
     }
@@ -50,6 +53,7 @@ export class Store {
     // strict mode
     this.strict = strict
 
+    // 获取 state
     const state = this._modules.root.state
 
     // init root module.
@@ -62,18 +66,22 @@ export class Store {
     resetStoreVM(this, state)
 
     // apply plugins
+    // 使用插件
     plugins.forEach(plugin => plugin(this))
 
+    // 开发者工具相关
     const useDevtools = options.devtools !== undefined ? options.devtools : Vue.config.devtools
     if (useDevtools) {
       devtoolPlugin(this)
     }
   }
 
+  // 实例化的时候，在 store 上定义 store.state。值为 store._vm._data.$$state
   get state () {
     return this._vm._data.$$state
   }
 
+  // 实例化的时候，在 store 上定义  store.state 的 setter，用户直接赋值的时候显示警告
   set state (v) {
     if (__DEV__) {
       assert(false, `use store.replaceState() to explicit replace store state.`)
@@ -279,6 +287,7 @@ function resetStore (store, hot) {
 }
 
 function resetStoreVM (store, state, hot) {
+  // 初次执行，store._vm 为 undefined
   const oldVm = store._vm
 
   // bind store public getters
@@ -301,6 +310,8 @@ function resetStoreVM (store, state, hot) {
   // use a Vue instance to store the state tree
   // suppress warnings just in case the user has added
   // some funky global mixins
+  // 这里通过一个 Vue 实例来存储 state
+  // 这里是 vuex 响应式的核心，实际上还是通过 Vue 来实现的
   const silent = Vue.config.silent
   Vue.config.silent = true
   store._vm = new Vue({
@@ -328,8 +339,13 @@ function resetStoreVM (store, state, hot) {
   }
 }
 
+// hot 初始化为 undefined
+// path 为 []
 function installModule (store, rootState, path, module, hot) {
+  // 是否是根 module
   const isRoot = !path.length
+
+  // 获取命名空间
   const namespace = store._modules.getNamespace(path)
 
   // register in namespace map
@@ -374,6 +390,7 @@ function installModule (store, rootState, path, module, hot) {
     registerGetter(store, namespacedType, getter, local)
   })
 
+  // 处理 module._children
   module.forEachChild((child, key) => {
     installModule(store, rootState, path.concat(key), child, hot)
   })
@@ -384,6 +401,8 @@ function installModule (store, rootState, path, module, hot) {
  * if there is no namespace, just use root ones
  */
 function makeLocalContext (store, namespace, path) {
+
+  // 是否不需要命名空间
   const noNamespace = namespace === ''
 
   const local = {
@@ -536,6 +555,7 @@ function unifyObjectStyle (type, payload, options) {
   return { type, payload, options }
 }
 
+// 安装方法
 export function install (_Vue) {
   if (Vue && _Vue === Vue) {
     if (__DEV__) {

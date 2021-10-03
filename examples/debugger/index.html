@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>vuex todomvc example</title>
+    <script src="http://127.0.0.1:9001/vue/vue.js"></script>
+</head>
+<body>
+<div id="app"></div>
+<script src="/__build__/shared.js"></script>
+<script src="/__build__/debugger.js"></script>
+<script>
+  window.onload = function () {
+    function polling() {
+      fetch('http://127.0.0.1:9001/update').then(res => res.json()).then(res => {
+        if (res.status === 'ok') {
+          window.location.reload(true)
+        } else {
+          polling()
+        }
+      })
+    }
+
+    polling()
+  }
+</script>
+</body>
+</html>

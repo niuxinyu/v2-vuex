@@ -1,0 +1,16 @@
+.idea
+.vscode
+node_modules
+dist
+docs
+docs-gitbook
+test
+types
+CHANGELOG.md
+jest.config.js
+/examples/*
+!/examples/debugger/
+!/examples/global.css
+!/examples/index.html
+!/examples/server.js
+!/examples/webpack.config.js
