@@ -300,6 +300,7 @@ function resetStoreVM (store, state, hot) {
     // use computed to leverage its lazy-caching mechanism
     // direct inline function use will lead to closure preserving oldVm.
     // using partial to return function with only arguments preserved in closure environment.
+    // 这里将 getters 定义为了 Vue 的计算属性
     computed[key] = partial(fn, store)
     Object.defineProperty(store.getters, key, {
       get: () => store._vm[key],
@@ -372,19 +373,23 @@ function installModule (store, rootState, path, module, hot) {
     })
   }
 
+  // 某个 module 的上下文
   const local = module.context = makeLocalContext(store, namespace, path)
 
+  // 注册 mutations
   module.forEachMutation((mutation, key) => {
     const namespacedType = namespace + key
     registerMutation(store, namespacedType, mutation, local)
   })
 
+  // 注册 actions
   module.forEachAction((action, key) => {
     const type = action.root ? key : namespace + key
     const handler = action.handler || action
     registerAction(store, type, handler, local)
   })
 
+  // 注册 getters
   module.forEachGetter((getter, key) => {
     const namespacedType = namespace + key
     registerGetter(store, namespacedType, getter, local)
@@ -481,15 +486,20 @@ function makeLocalGetters (store, namespace) {
 }
 
 function registerMutation (store, type, handler, local) {
+  // 初始化某一个 mutation type ，被初始化为了一个数组
   const entry = store._mutations[type] || (store._mutations[type] = [])
   entry.push(function wrappedMutationHandler (payload) {
+    // 调用 mutation
     handler.call(store, local.state, payload)
   })
 }
 
 function registerAction (store, type, handler, local) {
+  // 初始化某一个 action type，被初始化为了一个数组
   const entry = store._actions[type] || (store._actions[type] = [])
   entry.push(function wrappedActionHandler (payload) {
+    // 调用 action，并且缓存其返回值
+    // 因为 action可以返回 promise
     let res = handler.call(store, {
       dispatch: local.dispatch,
       commit: local.commit,
@@ -498,9 +508,13 @@ function registerAction (store, type, handler, local) {
       rootGetters: store.getters,
       rootState: store.state
     }, payload)
+
+    // 判断 action 执行结果是否为 promise
+    // 如果是 通过 Promise.resolve 直接返回
     if (!isPromise(res)) {
       res = Promise.resolve(res)
     }
+    // 如果是普通的值，return
     if (store._devtoolHook) {
       return res.catch(err => {
         store._devtoolHook.emit('vuex:error', err)
@@ -519,6 +533,8 @@ function registerGetter (store, type, rawGetter, local) {
     }
     return
   }
+
+  // 所有的 getter 直接保存到了 store._wrappedGetters 对象上
   store._wrappedGetters[type] = function wrappedGetter (store) {
     return rawGetter(
       local.state, // local state
@@ -541,6 +557,7 @@ function getNestedState (state, path) {
   return path.reduce((state, key) => state[key], state)
 }
 
+// 格式化 object
 function unifyObjectStyle (type, payload, options) {
   if (isObject(type) && type.type) {
     options = payload

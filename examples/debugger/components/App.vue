@@ -102,20 +102,26 @@
 
 <template>
   <div>
-    <h1>姓名：{{$store.state.name}}</h1>
-    <h1>年龄：{{$store.state.age}}</h1>
+    <h1>姓名：{{ $store.state.name }}</h1>
+    <h1>年龄：{{ $store.state.age }}</h1>
     <button @click="handleClick">age+1</button>
   </div>
 </template>
 <script>
 export default {
   methods: {
-    handleClick () {
-      this.$store.commit()
+    handleClick() {
+      // this.$store.commit('addAge')
+      console.log(this.getAge)
+    }
+  },
+  computed: {
+    getAge () {
+      return this.$store.getters.getAge
     }
   },
   created() {
-    console.log(this.$store.state);
+    // console.log(this.$store.state);
   }
 }
 </script>

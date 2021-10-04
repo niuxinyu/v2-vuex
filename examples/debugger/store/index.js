@@ -34,9 +34,23 @@ const moduleB = {
 }
 
 export default new Vuex.Store({
+  namespaced: 'fuck',
   state: {
     name: 'nxy',
     age: 0
+  },
+  mutations: {
+    plusAge(state, payload) {
+      console.log(state);
+    },
+    minusAge (state, payload = 1) {
+      console.log(state);
+    }
+  },
+  getters: {
+    getAge () {
+      console.log(arguments);
+    }
   }
   // modules: {
   //   'user': moduleA,
