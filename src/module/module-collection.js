@@ -32,20 +32,20 @@ export default class ModuleCollection {
     }
 
     // 首次执行的时候，传入了用户传入的 options
+    // 首次执行 runtime => false
     const newModule = new Module(rawModule, runtime)
 
-    // 如果当前 path 为空数组，说明为根 module
+    // 首次注册即注册根 module
     if (path.length === 0) {
       this.root = newModule
     } else {
       // 如果 path length 长度大于1 则是嵌套 module
       // 如果是 嵌套的 module 通过 this.get 获取其父级
       const parent = this.get(path.slice(0, -1))
-      // 通过 addChild 将 module 添加到 父 module 的 _children 数组中
+      // 通过 addChild 将 module 添加到 父 module 的 _children 属性中
       parent.addChild(path[path.length - 1], newModule)
     }
 
-    // register nested modules
     // 注册嵌套的 module
     if (rawModule.modules) {
       forEachValue(rawModule.modules, (rawChildModule, key) => {

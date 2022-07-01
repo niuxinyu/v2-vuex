@@ -100,28 +100,34 @@
 <!--}-->
 <!--</script>-->
 
+<script src="../store/index.js"></script>
 <template>
   <div>
     <h1>姓名：{{ $store.state.name }}</h1>
     <h1>年龄：{{ $store.state.age }}</h1>
     <button @click="handleClick">age+1</button>
+    <button @click="handleActionsClick">actions age + 2</button>
   </div>
 </template>
 <script>
 export default {
   methods: {
     handleClick() {
-      // this.$store.commit('addAge')
-      console.log(this.getAge)
+      this.$store.commit('plusAge')
+    },
+    handleActionsClick() {
+      this.$store.dispatch('asyncSetAge', 2).then(res => {
+        console.log(res);
+      })
     }
+  },
+  created() {
+    // console.log(this.getAge);
   },
   computed: {
     getAge () {
       return this.$store.getters.getAge
     }
-  },
-  created() {
-    // console.log(this.$store.state);
   }
 }
 </script>

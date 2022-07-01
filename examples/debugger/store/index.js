@@ -22,8 +22,13 @@ Vue.use(Vuex)
 
 const moduleA = {
   state: {
-    name: '',
-    age: 0
+    moduleA: ''
+  },
+  mutations: {
+    setModuleA(state, payload) {
+      console.log(state);
+      console.log(payload);
+    }
   }
 }
 
@@ -33,27 +38,37 @@ const moduleB = {
   }
 }
 
-export default new Vuex.Store({
-  namespaced: 'fuck',
+const store =  new Vuex.Store({
+  // namespaced: 'root',
   state: {
     name: 'nxy',
     age: 0
   },
   mutations: {
-    plusAge(state, payload) {
-      console.log(state);
+    plusAge(state, payload = 1) {
+      state.age += payload
     },
     minusAge (state, payload = 1) {
-      console.log(state);
-    }
+      state -= payload;
+    },
   },
   getters: {
     getAge () {
       console.log(arguments);
     }
+  },
+  actions: {
+    asyncSetAge(context, payload) {
+      console.log(context);
+      console.log(payload);
+      context.commit('plusAge', payload);
+      return 1;
+    }
+  },
+  modules: {
+    'user': moduleA,
+    // 'userCenter': moduleB
   }
-  // modules: {
-  //   'user': moduleA,
-  //   'userCenter': moduleB
-  // }
 })
+
+export default store;

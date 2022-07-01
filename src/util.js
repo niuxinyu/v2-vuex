@@ -62,7 +62,6 @@ export function isPromise (val) {
   return val && typeof val.then === 'function'
 }
 
-// 如果第一个条件为假，则输出 msg
 export function assert (condition, msg) {
   if (!condition) throw new Error(`[vuex] ${msg}`)
 }

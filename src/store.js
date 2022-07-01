@@ -20,11 +20,9 @@ export class Store {
       assert(this instanceof Store, `store must be called with the new operator.`)
     }
 
-    // 插件数组
-    // 是否严格模式，默认为 false
     const {
-      plugins = [],
-      strict = false
+      plugins = [], // 插件数组
+      strict = false // 是否严格模式
     } = options
 
     // store internal state
@@ -33,6 +31,7 @@ export class Store {
     this._actionSubscribers = []
     this._mutations = Object.create(null)
     this._wrappedGetters = Object.create(null)
+    // 注册嵌套的 module
     this._modules = new ModuleCollection(options)
     this._modulesNamespaceMap = Object.create(null)
     this._subscribers = []
@@ -50,7 +49,7 @@ export class Store {
       return commit.call(store, type, payload, options)
     }
 
-    // strict mode
+    // 严格模式
     this.strict = strict
 
     // 获取 state
@@ -59,6 +58,7 @@ export class Store {
     // init root module.
     // this also recursively registers all sub-modules
     // and collects all module getters inside this._wrappedGetters
+    // 注册 root module 和 submodules
     installModule(this, state, [], this._modules.root)
 
     // initialize the store vm, which is responsible for the reactivity
@@ -217,6 +217,7 @@ export class Store {
     }
 
     this._modules.register(path, rawModule)
+    // 注册 root module 和 sub modules
     installModule(this, this.state, path, this._modules.get(path), options.preserveState)
     // reset store to update getters...
     resetStoreVM(this, this.state)
@@ -289,7 +290,6 @@ function resetStore (store, hot) {
 function resetStoreVM (store, state, hot) {
   // 初次执行，store._vm 为 undefined
   const oldVm = store._vm
-
   // bind store public getters
   store.getters = {}
   // reset local getters cache
@@ -300,7 +300,6 @@ function resetStoreVM (store, state, hot) {
     // use computed to leverage its lazy-caching mechanism
     // direct inline function use will lead to closure preserving oldVm.
     // using partial to return function with only arguments preserved in closure environment.
-    // 这里将 getters 定义为了 Vue 的计算属性
     computed[key] = partial(fn, store)
     Object.defineProperty(store.getters, key, {
       get: () => store._vm[key],
@@ -340,7 +339,8 @@ function resetStoreVM (store, state, hot) {
   }
 }
 
-// hot 初始化为 undefined
+// 初始化时
+// hot undefined
 // path 为 []
 function installModule (store, rootState, path, module, hot) {
   // 是否是根 module
@@ -395,7 +395,7 @@ function installModule (store, rootState, path, module, hot) {
     registerGetter(store, namespacedType, getter, local)
   })
 
-  // 处理 module._children
+  // 处理所有的 modules
   module.forEachChild((child, key) => {
     installModule(store, rootState, path.concat(key), child, hot)
   })
@@ -407,7 +407,7 @@ function installModule (store, rootState, path, module, hot) {
  */
 function makeLocalContext (store, namespace, path) {
 
-  // 是否不需要命名空间
+  // 比如默认情况下 root store 就是没有命名空间的
   const noNamespace = namespace === ''
 
   const local = {
@@ -485,21 +485,18 @@ function makeLocalGetters (store, namespace) {
   return store._makeLocalGettersCache[namespace]
 }
 
+// 将所有的（包括module内的） mutation 保存到 store 的 _mutations 对象中
 function registerMutation (store, type, handler, local) {
-  // 初始化某一个 mutation type ，被初始化为了一个数组
   const entry = store._mutations[type] || (store._mutations[type] = [])
   entry.push(function wrappedMutationHandler (payload) {
     // 调用 mutation
     handler.call(store, local.state, payload)
   })
 }
-
+// 将所有的（包括module内的） actions 保存到 store 的 _actions 对象中
 function registerAction (store, type, handler, local) {
-  // 初始化某一个 action type，被初始化为了一个数组
   const entry = store._actions[type] || (store._actions[type] = [])
   entry.push(function wrappedActionHandler (payload) {
-    // 调用 action，并且缓存其返回值
-    // 因为 action可以返回 promise
     let res = handler.call(store, {
       dispatch: local.dispatch,
       commit: local.commit,
@@ -509,8 +506,7 @@ function registerAction (store, type, handler, local) {
       rootState: store.state
     }, payload)
 
-    // 判断 action 执行结果是否为 promise
-    // 如果是 通过 Promise.resolve 直接返回
+    // 如果返回值不是 Promise 则通过 Promise.resolve 包装后返回
     if (!isPromise(res)) {
       res = Promise.resolve(res)
     }
@@ -526,6 +522,7 @@ function registerAction (store, type, handler, local) {
   })
 }
 
+// 将所有的（包括module内的） getters 保存到 store 的 _wrappedGetters 对象中
 function registerGetter (store, type, rawGetter, local) {
   if (store._wrappedGetters[type]) {
     if (__DEV__) {
@@ -534,7 +531,6 @@ function registerGetter (store, type, rawGetter, local) {
     return
   }
 
-  // 所有的 getter 直接保存到了 store._wrappedGetters 对象上
   store._wrappedGetters[type] = function wrappedGetter (store) {
     return rawGetter(
       local.state, // local state
@@ -557,7 +553,7 @@ function getNestedState (state, path) {
   return path.reduce((state, key) => state[key], state)
 }
 
-// 格式化 object
+// 统一 object
 function unifyObjectStyle (type, payload, options) {
   if (isObject(type) && type.type) {
     options = payload
