@@ -3,13 +3,17 @@ import devtoolPlugin from './plugins/devtool'
 import ModuleCollection from './module/module-collection'
 import { forEachValue, isObject, isPromise, assert, partial } from './util'
 
-let Vue // bind on install
+let Vue
 
+/**
+ * @class
+ * */
 export class Store {
   constructor (options = {}) {
-    // Auto install if it is not done yet and `window` has `Vue`.
-    // To allow users to avoid auto-installation in some cases,
-    // this code should be placed here. See #731
+    // 将 install 放在了 new Store 内部来实现
+    // 某些情况下虽然 window.Vue 存在，但是用户可能不希望自动 install，而是手动 install
+    // 这样做可以确保用户在 window.Vue 存在的时候可以不自动 install
+    // #731
     if (!Vue && typeof window !== 'undefined' && window.Vue) {
       install(window.Vue)
     }
@@ -21,24 +25,23 @@ export class Store {
     }
 
     const {
-      plugins = [], // 插件数组
+      plugins = [], // 插件
       strict = false // 是否严格模式
     } = options
 
-    // store internal state
-    this._committing = false
-    this._actions = Object.create(null)
+    this._committing = false // 是否正在提交
+    this._actions = Object.create(null) // 存储 actions
     this._actionSubscribers = []
-    this._mutations = Object.create(null)
-    this._wrappedGetters = Object.create(null)
-    // 注册嵌套的 module
-    this._modules = new ModuleCollection(options)
+    this._mutations = Object.create(null) // 存储 mutations
+    this._wrappedGetters = Object.create(null) // 存储 getters
+
+    this._modules = new ModuleCollection(options) // 注册嵌套的 module
     this._modulesNamespaceMap = Object.create(null)
     this._subscribers = []
     this._watcherVM = new Vue()
     this._makeLocalGettersCache = Object.create(null)
 
-    // bind commit and dispatch to self
+    // 确保 dispatch commit 的 this 指向
     const store = this
     const { dispatch, commit } = this
     // 覆盖定义 dispatch commit
@@ -49,16 +52,13 @@ export class Store {
       return commit.call(store, type, payload, options)
     }
 
-    // 严格模式
+    // 是否严格模式
     this.strict = strict
 
     // 获取 state
     const state = this._modules.root.state
 
-    // init root module.
-    // this also recursively registers all sub-modules
-    // and collects all module getters inside this._wrappedGetters
-    // 注册 root module 和 submodules
+    // 注册 root module 和 submodules 将所有 module 和 submodule 的 getters 保存到 this._wrapperGetters
     installModule(this, state, [], this._modules.root)
 
     // initialize the store vm, which is responsible for the reactivity
@@ -310,8 +310,8 @@ function resetStoreVM (store, state, hot) {
   // use a Vue instance to store the state tree
   // suppress warnings just in case the user has added
   // some funky global mixins
-  // 这里通过一个 Vue 实例来存储 state
-  // 这里是 vuex 响应式的核心，实际上还是通过 Vue 来实现的
+
+  // 将 state 保存到一个新的 Vue 对象的 data 属性上
   const silent = Vue.config.silent
   Vue.config.silent = true
   store._vm = new Vue({
@@ -342,6 +342,13 @@ function resetStoreVM (store, state, hot) {
 // 初始化时
 // hot undefined
 // path 为 []
+/**
+ * @param store {Store}
+ * @param rootState {Object}
+ * @param path {string[]}
+ * @param module {Object}
+ * @param [hot] {boolean}
+ * */
 function installModule (store, rootState, path, module, hot) {
   // 是否是根 module
   const isRoot = !path.length
@@ -349,7 +356,7 @@ function installModule (store, rootState, path, module, hot) {
   // 获取命名空间
   const namespace = store._modules.getNamespace(path)
 
-  // register in namespace map
+  // 在 _modulesNamespaceMap 中注册 module
   if (module.namespaced) {
     if (store._modulesNamespaceMap[namespace] && __DEV__) {
       console.error(`[vuex] duplicate namespace ${namespace} for the namespaced module ${path.join('/')}`)
@@ -553,7 +560,7 @@ function getNestedState (state, path) {
   return path.reduce((state, key) => state[key], state)
 }
 
-// 统一 object
+// 格式化 object
 function unifyObjectStyle (type, payload, options) {
   if (isObject(type) && type.type) {
     options = payload

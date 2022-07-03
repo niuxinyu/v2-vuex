@@ -20,26 +20,24 @@ import Vuex from 'vuex'
 
 Vue.use(Vuex)
 
-const moduleA = {
-  state: {
-    moduleA: ''
-  },
-  mutations: {
-    setModuleA(state, payload) {
-      console.log(state);
-      console.log(payload);
-    }
-  }
-}
+// const moduleA = {
+//   state: {
+//     moduleA: ''
+//   },
+//   mutations: {
+//     setModuleA(state, payload) {
+//       console.log(state);
+//     }
+//   }
+// }
 
-const moduleB = {
-  state: {
-    nameList: []
-  }
-}
+// const moduleB = {
+//   state: {
+//     nameList: []
+//   }
+// }
 
 const store =  new Vuex.Store({
-  // namespaced: 'root',
   state: {
     name: 'nxy',
     age: 0
@@ -47,9 +45,6 @@ const store =  new Vuex.Store({
   mutations: {
     plusAge(state, payload = 1) {
       state.age += payload
-    },
-    minusAge (state, payload = 1) {
-      state -= payload;
     },
   },
   getters: {
@@ -59,14 +54,12 @@ const store =  new Vuex.Store({
   },
   actions: {
     asyncSetAge(context, payload) {
-      console.log(context);
-      console.log(payload);
       context.commit('plusAge', payload);
       return 1;
     }
   },
   modules: {
-    'user': moduleA,
+    // 'user': moduleA,
     // 'userCenter': moduleB
   }
 })
